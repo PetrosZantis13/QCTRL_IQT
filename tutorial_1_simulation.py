@@ -10,8 +10,6 @@ plt.style.use(qctrlvisualizer.get_qctrl_style())
 # Start a Boulder Opal session.
 qctrl = Qctrl()
 
-graph = qctrl.create_graph()
-
 
 def constant_H(omega=1.0e6, delta=0.4e6):
     '''
@@ -19,6 +17,8 @@ def constant_H(omega=1.0e6, delta=0.4e6):
     omega : Rabi drive in Hz
     delta : Detuning in Hz
     '''
+
+    graph = qctrl.create_graph()
 
     # (Constant) Hamiltonian parameters.
     omega = 2*np.pi*omega  # convert from Hz to rad
