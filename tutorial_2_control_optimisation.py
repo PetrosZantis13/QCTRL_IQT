@@ -1,3 +1,8 @@
+'''
+Q-CTRL Boulder Opal Tutorial 2:
+Generate and test robust controls in Boulder Opal
+'''
+
 # Import packages.
 import numpy as np
 import matplotlib.pyplot as plt

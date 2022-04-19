@@ -1,3 +1,8 @@
+'''
+Q-CTRL Boulder Opal Tutorial 1:
+Simulate and visualize quantum system dynamics in Boulder Opal
+'''
+
 # Import packages.
 import numpy as np
 import matplotlib.pyplot as plt
