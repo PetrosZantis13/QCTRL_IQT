@@ -52,9 +52,7 @@ def smooth_pwc():
     # Using the pprint package for an easy-to-read output.
     pprint(result.output["original signal"])
 
-    qctrlvisualizer.plot_controls(
-        plt.figure(), {"original signal": result.output["original signal"]}
-    )
+    qctrlvisualizer.plot_controls({"original signal": result.output["original signal"]})
 
     convolution_kernel = graph.gaussian_convolution_kernel(std=3e-8)
     print(convolution_kernel)
@@ -71,9 +69,9 @@ def smooth_pwc():
         graph=graph, output_node_names=["filtered signal"]
     )
 
-    qctrlvisualizer.plot_controls(plt.figure(), result.output, smooth=True)
+    qctrlvisualizer.plot_controls(result.output, smooth=True)
 
     plt.show()
 
 
-# smooth_pwc() # Uncomment to run
+smooth_pwc() # Uncomment to run

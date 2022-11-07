@@ -1,5 +1,6 @@
 '''
 Q-CTRL Boulder Opal Tutorial 1:
+Simulate the dynamics of a single qubit using computational graphs
 Simulate and visualize quantum system dynamics in Boulder Opal
 '''
 
@@ -42,7 +43,7 @@ def constant_H(omega=1.0e6, delta=0.4e6):
 
     # Total Hamiltonian, [Ω σ- + H.c.]/2 + δ σz.
     hamiltonian = (
-        graph.pwc_operator_hermitian_part(omega_signal * sigma_m) +
+        graph.hermitian_part(omega_signal * sigma_m) +
         delta_signal * sigma_z)
 
     # Times at which to sample the simulation.
@@ -74,6 +75,7 @@ def constant_H(omega=1.0e6, delta=0.4e6):
     qubit_populations = np.abs(states.squeeze()) ** 2
 
     # Plot populations.
+
     plt.figure(figsize=(10, 5))
     plt.plot(sample_times / 1e-6, qubit_populations)
     plt.xlabel("Time (µs)")
@@ -81,12 +83,16 @@ def constant_H(omega=1.0e6, delta=0.4e6):
     plt.legend(labels=[rf"$|{k}\rangle$" for k in [0, 1]], title="State")
     plt.show()
 
+    # qctrlvisualizer.plot_populations(
+    #     sample_times, {rf"$|{k}\rangle$": qubit_populations[:, k] for k in [0, 1]}
+    # )
+
     # Interactive visualisation on the Bloch Sphere;
     # ^ only works with JuPyter? ASK THE TEAM
     # qctrlvisualizer.display_bloch_sphere(states.squeeze())
 
 
-# constant_H(1.0e6, 0)   # uncomment to run
+constant_H(1.0e6, 0e6)   # uncomment to run
 
 
 def time_dep_H(omega_max=1.0e6, delta=0.4e6):
@@ -111,7 +117,6 @@ def time_dep_H(omega_max=1.0e6, delta=0.4e6):
 
     # Plot Gaussian pulse.
     qctrlvisualizer.plot_controls(
-        plt.figure(),
         {"$\Omega$": [{"value": v, "duration": segment_duration} for v in omega_values]},
         polar=False,
     )
@@ -129,7 +134,7 @@ def time_dep_H(omega_max=1.0e6, delta=0.4e6):
     sigma_m = np.array([[0, 1], [0, 0]])
 
     # Total Hamiltonian, [Ω σ- + H.c.]/2
-    hamiltonian = graph.pwc_operator_hermitian_part(omega_signal * sigma_m)
+    hamiltonian = graph.hermitian_part(omega_signal * sigma_m)
 
     # Time-evolution operators, U(t).
     unitaries = graph.time_evolution_operators_pwc(

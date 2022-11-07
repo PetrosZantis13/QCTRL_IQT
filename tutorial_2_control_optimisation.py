@@ -1,5 +1,6 @@
 '''
 Q-CTRL Boulder Opal Tutorial 2:
+Design robust single-qubit gates using computational graphs
 Generate and test robust controls in Boulder Opal
 '''
 
@@ -31,35 +32,21 @@ def robust_controls():
     # Maximum value for α(t).
     alpha_max = 2 * np.pi * 0.25e6  # Hz
 
-    # Optimizable variables for the PWC values of α(t) at each segment.
-    alpha_values = graph.optimization_variable(
-        count=segment_count, lower_bound=-alpha_max, upper_bound=alpha_max
-    )
-
     # Real PWC signal representing α(t).
-    alpha = graph.pwc_signal(values=alpha_values, duration=duration, name="$\\alpha$")
+    alpha = graph.utils.real_optimizable_pwc_signal(
+        segment_count=segment_count,
+        duration=duration,
+        minimum=-alpha_max,
+        maximum=alpha_max,
+        name="$\\alpha$",
+    )
 
     # Maximum value for |γ(t)|.
     gamma_max = 2 * np.pi * 0.5e6  # Hz
 
-    # Optimizable variables for the moduli and phases of the PWC values of γ(t).
-    gamma_moduli = graph.optimization_variable(
-        count=segment_count, lower_bound=0, upper_bound=gamma_max
-    )
-    gamma_phases = graph.optimization_variable(
-        count=segment_count,
-        lower_bound=0,
-        upper_bound=2 * np.pi,
-        is_lower_unbounded=True,
-        is_upper_unbounded=True,
-    )
-
     # Complex PWC signal representing γ(t)
-    gamma = graph.complex_pwc_signal(
-        moduli=gamma_moduli,
-        phases=gamma_phases,
-        duration=duration,
-        name="$\\gamma$",
+    gamma = graph.utils.complex_optimizable_pwc_signal(
+        segment_count=segment_count, duration=duration, maximum=gamma_max, name="$\\gamma$"
     )
 
     # Detuning δ.
@@ -72,15 +59,12 @@ def robust_controls():
     # Total Hamiltonian.
     hamiltonian = (
         alpha * sigma_z
-        + graph.pwc_operator_hermitian_part(gamma * sigma_m)
+        + graph.hermitian_part(gamma * sigma_m)
         + delta * sigma_z
     )
 
-    # Pauli matrix σy.
-    sigma_y = np.array([[0, -1j], [1j, 0]])
-
     # Target operation node.
-    target = graph.target(operator=sigma_y)
+    target = graph.target(operator=graph.pauli_matrix("Y"))
 
     # Dephasing noise amplitude.
     beta = 2 * np.pi * 20e3  # Hz
@@ -104,15 +88,23 @@ def robust_controls():
 
     print(f"Optimized robust cost: {optimization_result.cost:.3e}")
 
-    qctrlvisualizer.plot_controls(plt.figure(), controls=optimization_result.output)
+    qctrlvisualizer.plot_controls(controls=optimization_result.output)
     plt.show()
 
     # Retrieve values of the robust PWC controls α(t) and γ(t).
-    alpha_values = np.array(
-        [segment["value"] for segment in optimization_result.output["$\\alpha$"]]
+    # alpha_values = np.array(
+    #     [segment["value"] for segment in optimization_result.output["$\\alpha$"]]
+    # )
+    # gamma_values = np.array(
+    #     [segment["value"] for segment in optimization_result.output["$\\gamma$"]]
+    # )
+
+    # Retrieve values of the robust PWC controls α(t) and γ(t).
+    _, alpha_values, _ = qctrl.utils.pwc_pairs_to_arrays(
+        optimization_result.output["$\\alpha$"]
     )
-    gamma_values = np.array(
-        [segment["value"] for segment in optimization_result.output["$\\gamma$"]]
+    _, gamma_values, _ = qctrl.utils.pwc_pairs_to_arrays(
+        optimization_result.output["$\\gamma$"]
     )
 
     graph = qctrl.create_graph()
@@ -134,13 +126,13 @@ def robust_controls():
     # Total Hamiltonian.
     hamiltonian = (
         alpha * sigma_z
-        + graph.pwc_operator_hermitian_part(gamma * sigma_m)
+        + graph.hermitian_part(gamma * sigma_m)
         + delta * sigma_z
         + dephasing_amplitude * sigma_z
     )
 
     # Target operation node.
-    target = graph.target(operator=sigma_y)
+    target = graph.target(operator=graph.pauli_matrix("Y"))
 
     # Quasi-static scan infidelity.
     infidelity = graph.infidelity_pwc(
@@ -156,11 +148,11 @@ def robust_controls():
 
     # Create plot with the infidelity scan.
     fig, ax = plt.subplots()
-    ax.plot(beta_scan / 1e6, infidelities)
+    ax.plot(beta_scan / (1e6 * 2 * np.pi), infidelities)
     ax.set_xlabel(r"$\beta$ (MHz)")
     ax.set_ylabel("Infidelity")
 
     plt.show()
 
 
-# robust_controls()  # uncomment to run
+robust_controls()  # uncomment to run
